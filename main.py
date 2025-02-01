@@ -13,7 +13,7 @@ system_message = SystemMessage("Translate the following from English into Norweg
 
 
 def run():
-    print("Welcome to the Ollama chatbot!")
+    print("Welcome Nordic Tales!")
     for user_input in sys.stdin:
         user_input = user_input.strip()
         if not user_input:
