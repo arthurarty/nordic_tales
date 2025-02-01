@@ -4,6 +4,8 @@ from langchain_ollama import ChatOllama
 from rich import print as rich_print
 from rich.console import Console
 from rich.prompt import Prompt
+from rich.padding import Padding
+
 
 console = Console()
 
@@ -60,21 +62,26 @@ def run():
     rich_print("[italic green] Welcome Nordic Tales!")
     selected_track_text = select_learning_track(1)
     messages = [system_message, HumanMessage(selected_track_text)]
-    resp = model.invoke(messages)
-    messages.append(AIMessage(resp.content))
-    rich_print(f"[green] {resp.content}")
+    streamed_resp = ""
+    for chunk in model.stream(messages):
+        console.print(chunk.content, end="", style="green", highlight=False, width=85)
+        streamed_resp += chunk.content
+    messages.append(AIMessage(streamed_resp))
     while True:
-        user_input = Prompt.ask("Enter your answer:")
+        user_input = Prompt.ask("\n Enter your answer:")
         if not user_input:
+            console.print("Bye!", style="bold red")
             break
         if user_input == "exit":
+            console.print("Bye!", style="bold red")
             break
         messages.append(HumanMessage(user_input))
-        resp = model.invoke(messages)
-        messages.append(AIMessage(resp.content))
         console.clear()  # removes the clutter in the console
-        rich_print(f"\n [green] {resp.content}")
-
+        streamed_response = ""
+        for chunk in model.stream(messages):  # Stream the response
+            console.print(chunk.content, end="", style="green", highlight=False)
+            streamed_response += chunk.content
+        messages.append(AIMessage(streamed_response))
 
 if __name__ == "__main__":
     run()
