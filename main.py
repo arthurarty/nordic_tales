@@ -1,3 +1,4 @@
+import sys
 from langchain_ollama import ChatOllama
 from langchain_core.messages import HumanMessage, SystemMessage
 
@@ -8,9 +9,20 @@ model = ChatOllama(
 )
 
 
-messages = [
-    SystemMessage("Translate the following from English into Norwegian"),
-    HumanMessage("Hello, how are you?"),
-]
+system_message = SystemMessage("Translate the following from English into Norwegian")
 
-model.invoke(messages)
+
+def run():
+    print("Welcome to the Ollama chatbot!")
+    for user_input in sys.stdin:
+        user_input = user_input.strip()
+        if not user_input:
+            break
+        if user_input == "exit":
+            break
+        messages = [system_message, HumanMessage(user_input)]
+        resp = model.invoke(messages)
+        print(resp.content)
+
+if __name__ == "__main__":
+    run()
