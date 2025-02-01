@@ -1,10 +1,14 @@
 import sys
 from langchain_ollama import ChatOllama
 from langchain_core.messages import HumanMessage, SystemMessage
+from dotenv import dotenv_values
+
+
+config = dotenv_values(".env")
 
 
 model = ChatOllama(
-    model="llama3.2",
+    model=config.get("LLM_MODEL", "llama3.2"),
     temperature=0,
 )
 
