@@ -1,7 +1,11 @@
-import sys
-from langchain_ollama import ChatOllama
-from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from dotenv import dotenv_values
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langchain_ollama import ChatOllama
+from rich import print as rich_print
+from rich.console import Console
+from rich.prompt import Prompt
+
+console = Console()
 
 
 config = dotenv_values(".env")
@@ -13,7 +17,7 @@ model = ChatOllama(
 )
 
 
-system_message_input = """
+SYSTEM_MESSAGE_INPUT_STR = """
 You are a professional language teacher tasked with conducting a lesson based on a provided script. Your goal is to teach the student certain concepts while following the script closely.
 
 Now, follow these guidelines for teaching:
@@ -29,10 +33,14 @@ Remember to stay in character as a professional, friendly, and patient language 
 
 Conduct the lesson as a chat between you (the teacher) and the student. Include ALL the information. Keep the messages short and concise.
 """
-system_message = SystemMessage(system_message_input)
+system_message = SystemMessage(SYSTEM_MESSAGE_INPUT_STR)
 
 
 def select_learning_track(selected_number: int) -> str:
+    """
+    Pick a learning track based on the selected number.
+    Default is 1.
+    """
     text_file_name: str = "1.txt"
     match selected_number:
         case 2:
@@ -41,19 +49,22 @@ def select_learning_track(selected_number: int) -> str:
             text_file_name = "3.txt"
         case _:
             text_file_name = "1.txt"
-    with open(text_file_name, 'r', encoding='utf-8') as file:
+    with open(text_file_name, "r", encoding="utf-8") as file:
         return file.read()
 
 
 def run():
-    print("Welcome Nordic Tales!")
+    """ "
+    Run Nordic Tales:
+    """
+    rich_print("[italic green] Welcome Nordic Tales!")
     selected_track_text = select_learning_track(1)
     messages = [system_message, HumanMessage(selected_track_text)]
     resp = model.invoke(messages)
     messages.append(AIMessage(resp.content))
-    print(resp.content)
-    for user_input in sys.stdin:
-        user_input = user_input.strip()
+    rich_print(f"[green] {resp.content}")
+    while True:
+        user_input = Prompt.ask("Enter your answer:")
         if not user_input:
             break
         if user_input == "exit":
@@ -61,7 +72,9 @@ def run():
         messages.append(HumanMessage(user_input))
         resp = model.invoke(messages)
         messages.append(AIMessage(resp.content))
-        print(resp.content)
+        console.clear()  # removes the clutter in the console
+        rich_print(f"\n [green] {resp.content}")
+
 
 if __name__ == "__main__":
     run()
